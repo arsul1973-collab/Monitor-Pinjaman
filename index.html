@@ -2,72 +2,239 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard Pinjaman BRI Gunung Tua - LIVE FIX</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DASHBOARD MONITORING PINJAMAN - KCP BRI GUNUNG TUA - V2.0 LIVE FIX</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-body{font-family:'Inter',sans-serif}
+:root{--bg:#0f172a;--card:#1e293b;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#f1f5f9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;padding:14px}
+.header{background:linear-gradient(90deg,#1e3a8a,#2563eb);padding:18px 22px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.header h1{font-size:18px;letter-spacing:.5px}
+.badge{background:#0f172a;border:1px solid #22c55e;color:#22c55e;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800}
+.status-bar{background:var(--card);border:1px solid #334155;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11.5px;line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid #334155;border-radius:12px;padding:14px}
+.card small{color:#94a3b8;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+.card h2{font-size:19px;margin-top:6px}
+.kpi-col{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.kpi-col div{flex:1;text-align:center;background:#0f172a;padding:6px;border-radius:8px;min-width:45px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:800px){.charts{grid-template-columns:1fr}}
+.chart-box{background:var(--card);border:1px solid #334155;border-radius:12px;padding:14px}
+.controls{background:var(--card);border:1px solid #334155;border-radius:12px;padding:10px;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.controls input,.controls select{background:#0f172a;border:1px solid #334155;color:#f1f5f9;padding:9px 12px;border-radius:8px;font-size:13px;outline:none}
+.table-wrap{background:var(--card);border:1px solid #334155;border-radius:12px;overflow:auto;max-height:65vh}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+th{position:sticky;top:0;background:#0f172a;color:#94a3b8;text-align:left;padding:10px 8px;border-bottom:1px solid #334155;font-size:10.5px;z-index:2}
+td{padding:9px 8px;border-bottom:1px solid #1e293b;vertical-align:top}
+tr:hover{background:#1e293b}
+.tag{padding:2px 9px;border-radius:12px;font-size:10px;font-weight:800;display:inline-block}
+.tag-1{background:#22c55e22;color:#22c55e;border:1px solid #22c55e55}
+.tag-2{background:#eab30822;color:#eab308;border:1px solid #eab30855}
+.tag-3{background:#f9731622;color:#f97316;border:1px solid #f9731655}
+.tag-4{background:#ef444422;color:#ef4444;border:1px solid #ef444455}
+.tag-5{background:#7f1d1d;color:#fecaca;border:1px solid #ef4444}
+.footer{text-align:center;color:#64748b;font-size:11px;margin-top:16px;padding:10px;line-height:1.6}
+.btn{border:0;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:700}
+.btn-blue{background:#3b82f6;color:#fff}
+.btn-dark{background:#0f172a;border:1px solid #334155;color:#f1f5f9}
 </style>
 </head>
-<body class="bg-[#080d1a] text-white min-h-screen p-4 md:p-6">
-<div class="max-w-7xl mx-auto">
-<div class="flex justify-between items-center mb-4">
-<h1 class="text-lg md:text-2xl font-bold">DASHBOARD MONITORING PINJAMAN<br><span class="text-sm font-normal opacity-60">KCP BRI GUNUNG TUA</span></h1>
-<button onclick="loadData()" class="bg-white text-black px-5 py-2 rounded-full text-xs font-bold">🔄 Refresh</button>
+<body>
+<div class="header">
+<div><h1>DASHBOARD MONITORING PINJAMAN</h1><small style="color:#bfdbfe">KCP BRI GUNUNG TUA - FIX LIVE DATA V2.0</small></div>
+<div class="badge" id="liveBadge">● LIVE</div>
 </div>
 
-<div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 mb-4">
-<p class="text-xs text-emerald-400">✅ FIX LIVE DATA: pub?output=csv + cache no-store | Tidak delay 5 menit lagi | Auto refresh 30 detik</p>
-<p id="status" class="text-[11px] mt-1 opacity-70">Loading...</p>
-</div>
-
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">TOTAL OS</p><p id="totalOS" class="text-lg font-bold">0</p></div>
-<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">TOTAL DEBITUR</p><p id="totalDeb" class="text-lg font-bold">0</p></div>
-<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">COL 1</p><p id="col1" class="text-lg font-bold text-emerald-400">0</p></div>
-<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">COL 2+</p><p id="col2" class="text-lg font-bold text-red-400">0</p></div>
-</div>
-
-<div class="bg-[#111a2f] rounded-xl p-3 border border-white/10">
-<p class="text-xs font-bold mb-2">DATA LIVE DARI GOOGLE SHEET</p>
-<div class="overflow-auto max-h-[60vh]">
-<table class="w-full text-[11px]"><thead class="opacity-60 border-b border-white/10"><tr><th class="text-left p-2">No</th><th class="text-left p-2">Nama</th><th class="text-left p-2">OS</th><th class="text-left p-2">Kolek</th></tr></thead><tbody id="tbody"></tbody></table>
+<div class="status-bar" id="statusBar">
+<span style="color:#22c55e;font-weight:700">✔ FIX LIVE DATA: pub?output=csv + cache no-store | Tidak delay 5 menit lagi | Auto refresh 30 detik</span><br>
+<span id="statusDetail">Menunggu load...</span>
+<div style="margin-top:6px;display:flex;gap:6px">
+<input id="sheetUrlInput" placeholder="Paste link PUB CSV Google Sheet (https://docs.google.com/.../pub?output=csv)" style="flex:1;background:#0f172a;border:1px solid #334155;color:#f1f5f9;padding:6px 10px;border-radius:6px;font-size:11px">
+<button class="btn btn-blue" onclick="saveSheetUrl()">Save URL</button>
 </div>
 </div>
 
+<div class="grid">
+<div class="card"><small>TOTAL OS</small><h2 id="totalOS">Rp 0</h2><small id="totalOSDetail">0 debitur</small></div>
+<div class="card"><small>TOTAL DEBITUR</small><h2 id="totalDeb">0</h2><small id="totalDebDetail">Baris aktif</small></div>
+<div class="card"><small>RATA-RATA OS</small><h2 id="avgOS">Rp 0</h2><small>per debitur</small></div>
+<div class="card"><small>STATUS KOLEKTIBILITAS</small><div class="kpi-col" id="colKpi"></div></div>
 </div>
+
+<div class="charts">
+<div class="chart-box"><small>Distribusi COL</small><canvas id="colChart" height="200"></canvas></div>
+<div class="chart-box"><small>Top 5 Mantri / Petugas</small><canvas id="mantriChart" height="200"></canvas></div>
+</div>
+
+<div class="controls">
+<input id="searchInput" placeholder="🔍 Cari Nama / No Rekening / Mantri..." style="flex:1;min-width:200px">
+<select id="colFilter"><option value="">Semua COL</option><option value="1">COL 1 Lancar</option><option value="2">COL 2 DPK</option><option value="3">COL 3 Kurang Lancar</option><option value="4">COL 4 Diragukan</option><option value="5">COL 5 Macet</option></select>
+<select id="mantriFilter"><option value="">Semua Mantri</option></select>
+<button class="btn btn-blue" onclick="loadData()">🔄 Refresh</button>
+<button class="btn btn-dark" onclick="exportCSV()">⬇ Export</button>
+</div>
+
+<div class="table-wrap">
+<table id="mainTable"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+</div>
+
+<div class="footer">
+Fix Live Data V2.0 - Menggunakan <b>docs.google.com/spreadsheets/d/e/.../pub?output=csv</b> dengan cache busting & no-store | Auto refresh 30 detik | OS Parser FIX Indonesia
+<br><span id="lastUpdate"></span><br>
+Link: https://monitor-pinjaman.vercel.app
+</div>
+
 <script>
-const SHEET_ID='2PACX-1vRDzTdDurza7AY19lp5UsdqC0W8o4RtUiYlMyWRGWf3VUaT7Qph24YhPbBZ3-eu46nhQ2usniJKYU_e';
+let SHEET_CSV_URL = localStorage.getItem('SHEET_CSV_URL') || "";
+const sheetInput = document.getElementById('sheetUrlInput');
+if(SHEET_CSV_URL) sheetInput.value = SHEET_CSV_URL;
+
+function saveSheetUrl(){
+ const v = sheetInput.value.trim();
+ if(!v.includes('pub?output=csv') &&!v.includes('output=csv')){ alert('Link harus mengandung pub?output=csv'); return; }
+ SHEET_CSV_URL = v; localStorage.setItem('SHEET_CSV_URL', v); alert('URL disimpan! Load data sekarang...'); loadData();
+}
+
+let rawData = [];
+let colChartInst, mantriChartInst;
+
+function parseNumber(str){
+ if(str===null||str===undefined) return 0;
+ let s = String(str).trim(); if(s==='') return 0;
+ s = s.replace(/Rp|\s|IDR/gi,'').trim();
+ if(s.includes('.') && s.includes(',')){ s = s.replace(/\./g,'').replace(/,/g,'.'); }
+ else if(s.includes(',') &&!s.includes('.')){
+  const parts = s.split(','); if(parts[1] && parts[1].length===3 && parts.length===2) s = s.replace(/,/g,''); else s = s.replace(/,/g,'.');
+ } else { s = s.replace(/,/g,''); }
+ s = s.replace(/[^0-9.\-]/g,'');
+ let n = parseFloat(s); if(isNaN(n)) return 0; return n;
+}
+
+function parseCSV(text){
+ const rows=[]; let curRow=[]; let cur=''; let inQ=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i]; const n=text[i+1];
+  if(c=='"'){ if(inQ && n=='"'){cur+='"';i++;} else {inQ=!inQ;} }
+  else if(c==',' &&!inQ){curRow.push(cur);cur='';}
+  else if((c=='\n' || c=='\r') &&!inQ){
+   if(c=='\r' && n=='\n') i++; curRow.push(cur); rows.push(curRow); curRow=[]; cur='';
+  } else {cur+=c;}
+ }
+ if(cur || curRow.length){curRow.push(cur); rows.push(curRow);}
+ return rows.filter(r=>r.join('').trim()!='');
+}
+
+function detectColumns(header){
+ const h = header.map(x=>x.toLowerCase().trim());
+ const findOne = (list)=>{ for(let k of list){ let idx=h.findIndex(x=>x.includes(k)); if(idx>-1) return idx;} return -1; };
+ return {
+  no: findOne(['no','nomor','number','no.']),
+  nama: findOne(['nama','debitur','nasabah','nama debitur']),
+  os: findOne(['os','baki debet','outstanding','bdebet','sisa pinjaman','plafond','saldo','total os']),
+  kolek: findOne(['kolek','col','kolektibilitas','kol','kolekt']),
+  mantri: findOne(['mantri','petugas','ao','marketing','karyawan']),
+  norek: findOne(['rekening','norek','no rek','loan'])
+ };
+}
+
+function formatRp(n){
+ if(n>=1000000000) return 'Rp '+(n/1000000000).toFixed(3)+' M';
+ if(n>=1000000) return 'Rp '+(n/1000000).toFixed(3)+' M';
+ if(n>=1000) return 'Rp '+(n/1000).toFixed(0)+' K';
+ return 'Rp '+n.toLocaleString('id-ID');
+}
+
 async function loadData(){
-const url=`https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv&t=${Date.now()}`;
-document.getElementById('status').textContent='Mengambil data LIVE... '+new Date().toLocaleString('id-ID');
-try{
-const res=await fetch(url,{cache:'no-store'});
-const text=await res.text();
-const lines=text.trim().split('\n').map(l=>l.split(','));
-if(lines.length<2) throw 'Kosong';
-const data=lines.slice(1);
-let totalOS=0, col1=0, col2=0;
-let html='';
-data.forEach((r,i)=>{
-if(!r[0]) return;
-let os=parseInt((r[5]||'0').replace(/[^0-9]/g,''))||0;
-let kolek=(r[6]||'').trim();
-totalOS+=os;
-if(kolek=='1') col1++; else if(kolek!='') col2++;
-if(i<100) html+=`<tr class="border-b border-white/5"><td class="p-2">${i+1}</td><td class="p-2">${r[1]||''}</td><td class="p-2">Rp ${os.toLocaleString('id-ID')}</td><td class="p-2">${kolek}</td></tr>`;
-});
-document.getElementById('totalOS').textContent='Rp '+(totalOS/1000000000).toFixed(3)+' M';
-document.getElementById('totalDeb').textContent=data.length;
-document.getElementById('col1').textContent=col1;
-document.getElementById('col2').textContent=col2;
-document.getElementById('tbody').innerHTML=html;
-document.getElementById('status').textContent=`✅ LIVE OK: ${data.length} baris | ${new Date().toLocaleString('id-ID')} | pub?output=csv`;
-}catch(e){
-document.getElementById('status').textContent='❌ Error: '+e+' - Cek publish Google Sheet';
+ try{
+  if(!SHEET_CSV_URL){
+   const tryFetch = prompt('Paste LINK PUB CSV Google Sheet Bapak (https://.../pub?output=csv) :', localStorage.getItem('SHEET_CSV_URL')||'');
+   if(tryFetch){ SHEET_CSV_URL=tryFetch.trim(); localStorage.setItem('SHEET_CSV_URL', SHEET_CSV_URL); sheetInput.value=SHEET_CSV_URL; }
+   else return;
+  }
+  const bust = SHEET_CSV_URL + (SHEET_CSV_URL.includes('?')?'&':'?') + 't='+Date.now();
+  document.getElementById('statusDetail').textContent = 'Loading...';
+  const res = await fetch(bust, {cache:'no-store'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const text = await res.text();
+  const rows = parseCSV(text);
+  const header = rows[0];
+  const cols = detectColumns(header);
+  if(cols.os==-1){ let maxIdx=0,maxSum=0; for(let c=0;c<header.length;c++){ let sum=0; for(let r=1;r<Math.min(6,rows.length);r++){ sum+=parseNumber(rows[r][c]); } if(sum>maxSum){maxSum=sum;maxIdx=c;}} cols.os=maxIdx; }
+  rawData = rows.slice(1).map((r,i)=>{
+   let kolekRaw = (cols.kolek>-1?r[cols.kolek]:'')+'';
+   let kolekNum = kolekRaw.replace(/[^0-9]/g,'').charAt(0) || '1';
+   if(!'12345'.includes(kolekNum)) kolekNum='1';
+   return {
+    no: cols.no>-1?r[cols.no]:(i+1),
+    nama: (cols.nama>-1?r[cols.nama]:r[1]||'').trim(),
+    os: parseNumber(cols.os>-1?r[cols.os]:r[2]),
+    osText: (cols.os>-1?r[cols.os]:r[2]||'').trim(),
+    kolek: kolekNum,
+    mantri: (cols.mantri>-1?r[cols.mantri]:r[4]||'-').trim() || '-',
+    norek: (cols.norek>-1?r[cols.norek]:r[0]||'').trim()
+   };
+  }).filter(d=>d.nama && d.nama.toLowerCase()!=='nama');
+
+  document.getElementById('statusDetail').innerHTML = `✔ LIVE OK: ${rawData.length} baris | ${new Date().toLocaleString('id-ID')} | pub?output=csv | OS col: ${header[cols.os]}`;
+  document.getElementById('lastUpdate').textContent = 'Last update: '+new Date().toLocaleString('id-ID');
+  document.getElementById('liveBadge').textContent = '● LIVE '+rawData.length;
+  renderKPIs(); renderFilters(); renderTable(); renderCharts();
+ }catch(e){
+  document.getElementById('statusDetail').innerHTML = '<span style="color:#ef4444">✘ Error: '+e.message+'</span>';
+ }
 }
+
+function renderKPIs(){
+ const totalOS = rawData.reduce((s,d)=>s+d.os,0);
+ const avg = rawData.length?totalOS/rawData.length:0;
+ document.getElementById('totalOS').textContent = formatRp(totalOS);
+ document.getElementById('totalOSDetail').textContent = totalOS.toLocaleString('id-ID')+' | '+rawData.length+' debitur';
+ document.getElementById('totalDeb').textContent = rawData.length;
+ document.getElementById('avgOS').textContent = formatRp(avg);
+ const colCount={1:0,2:0,3:0,4:0,5:0}; rawData.forEach(d=>{ if(colCount[d.kolek]!==undefined) colCount[d.kolek]++; });
+ document.getElementById('colKpi').innerHTML = Object.entries(colCount).map(([k,v])=>`<div><small>COL ${k}</small><br><b>${v}</b></div>`).join('');
 }
+function renderFilters(){
+ const mantriSet=[...new Set(rawData.map(d=>d.mantri).filter(Boolean))].sort();
+ const sel=document.getElementById('mantriFilter'); const cur=sel.value;
+ sel.innerHTML='<option value="">Semua Mantri</option>'+mantriSet.map(m=>`<option>${m}</option>`).join('');
+ if(cur) sel.value=cur;
+}
+function getFiltered(){
+ const q=document.getElementById('searchInput').value.toLowerCase();
+ const colF=document.getElementById('colFilter').value;
+ const mantriF=document.getElementById('mantriFilter').value;
+ return rawData.filter(d=>{
+  if(colF && d.kolek!=colF) return false;
+  if(mantriF && d.mantri!=mantriF) return false;
+  if(q &&!(d.nama.toLowerCase().includes(q) || d.norek.toLowerCase().includes(q) || d.mantri.toLowerCase().includes(q))) return false;
+  return true;
+ });
+}
+function renderTable(){
+ const data=getFiltered();
+ document.getElementById('thead').innerHTML='<tr><th>No</th><th>Nama Debitur</th><th>No Rek</th><th>OS / Baki Debet</th><th>COL</th><th>Mantri</th></tr>';
+ document.getElementById('tbody').innerHTML=data.map((d,i)=>`<tr><td>${i+1}</td><td><b>${d.nama}</b></td><td>${d.norek}</td><td>${formatRp(d.os)}<br><small style="color:#64748b">${d.osText}</small></td><td><span class="tag tag-${d.kolek}">COL ${d.kolek}</span></td><td>${d.mantri}</td></tr>`).join('');
+}
+function renderCharts(){
+ const colCount={1:0,2:0,3:0,4:0,5:0}; const mantriCount={};
+ rawData.forEach(d=>{ if(colCount[d.kolek]!==undefined) colCount[d.kolek]++; mantriCount[d.mantri]=(mantriCount[d.mantri]||0)+1; });
+ const ctx1=document.getElementById('colChart'); if(colChartInst) colChartInst.destroy();
+ colChartInst=new Chart(ctx1,{type:'doughnut',data:{labels:['COL 1','COL 2','COL 3','COL 4','COL 5'],datasets:[{data:Object.values(colCount),backgroundColor:['#22c55e','#eab308','#f97316','#ef4444','#7f1d1d'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#f1f5f9'}}}}});
+ const sortedMantri=Object.entries(mantriCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const ctx2=document.getElementById('mantriChart'); if(mantriChartInst) mantriChartInst.destroy();
+ mantriChartInst=new Chart(ctx2,{type:'bar',data:{labels:sortedMantri.map(x=>x[0]),datasets:[{label:'Debitur',data:sortedMantri.map(x=>x[1]),backgroundColor:'#3b82f6'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94a3b8'}},y:{ticks:{color:'#94a3b8'}}}}});
+}
+function exportCSV(){
+ const data=getFiltered(); let csv='No,Nama,Norek,OS,COL,Mantri\n';
+ data.forEach((d,i)=>{ csv+=`${i+1},"${d.nama}","${d.norek}",${d.os},${d.kolek},"${d.mantri}"\n`; });
+ const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='monitoring-pinjaman.csv'; a.click();
+}
+document.getElementById('searchInput').addEventListener('input',renderTable);
+document.getElementById('colFilter').addEventListener('change',renderTable);
+document.getElementById('mantriFilter').addEventListener('change',renderTable);
 loadData();
 setInterval(loadData,30000);
 </script>

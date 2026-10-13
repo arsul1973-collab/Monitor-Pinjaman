@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Pinjaman BRI Gunung Tua - LIVE FIX</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body{font-family:'Inter',sans-serif}
+</style>
+</head>
+<body class="bg-[#080d1a] text-white min-h-screen p-4 md:p-6">
+<div class="max-w-7xl mx-auto">
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-lg md:text-2xl font-bold">DASHBOARD MONITORING PINJAMAN<br><span class="text-sm font-normal opacity-60">KCP BRI GUNUNG TUA</span></h1>
+<button onclick="loadData()" class="bg-white text-black px-5 py-2 rounded-full text-xs font-bold">🔄 Refresh</button>
+</div>
+
+<div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 mb-4">
+<p class="text-xs text-emerald-400">✅ FIX LIVE DATA: pub?output=csv + cache no-store | Tidak delay 5 menit lagi | Auto refresh 30 detik</p>
+<p id="status" class="text-[11px] mt-1 opacity-70">Loading...</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">TOTAL OS</p><p id="totalOS" class="text-lg font-bold">0</p></div>
+<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">TOTAL DEBITUR</p><p id="totalDeb" class="text-lg font-bold">0</p></div>
+<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">COL 1</p><p id="col1" class="text-lg font-bold text-emerald-400">0</p></div>
+<div class="bg-[#111a2f] rounded-xl p-4 border border-white/10"><p class="text-[10px] opacity-60">COL 2+</p><p id="col2" class="text-lg font-bold text-red-400">0</p></div>
+</div>
+
+<div class="bg-[#111a2f] rounded-xl p-3 border border-white/10">
+<p class="text-xs font-bold mb-2">DATA LIVE DARI GOOGLE SHEET</p>
+<div class="overflow-auto max-h-[60vh]">
+<table class="w-full text-[11px]"><thead class="opacity-60 border-b border-white/10"><tr><th class="text-left p-2">No</th><th class="text-left p-2">Nama</th><th class="text-left p-2">OS</th><th class="text-left p-2">Kolek</th></tr></thead><tbody id="tbody"></tbody></table>
+</div>
+</div>
+
+</div>
+<script>
+const SHEET_ID='2PACX-1vRDzTdDurza7AY19lp5UsdqC0W8o4RtUiYlMyWRGWf3VUaT7Qph24YhPbBZ3-eu46nhQ2usniJKYU_e';
+async function loadData(){
+const url=`https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv&t=${Date.now()}`;
+document.getElementById('status').textContent='Mengambil data LIVE... '+new Date().toLocaleString('id-ID');
+try{
+const res=await fetch(url,{cache:'no-store'});
+const text=await res.text();
+const lines=text.trim().split('\n').map(l=>l.split(','));
+if(lines.length<2) throw 'Kosong';
+const data=lines.slice(1);
+let totalOS=0, col1=0, col2=0;
+let html='';
+data.forEach((r,i)=>{
+if(!r[0]) return;
+let os=parseInt((r[5]||'0').replace(/[^0-9]/g,''))||0;
+let kolek=(r[6]||'').trim();
+totalOS+=os;
+if(kolek=='1') col1++; else if(kolek!='') col2++;
+if(i<100) html+=`<tr class="border-b border-white/5"><td class="p-2">${i+1}</td><td class="p-2">${r[1]||''}</td><td class="p-2">Rp ${os.toLocaleString('id-ID')}</td><td class="p-2">${kolek}</td></tr>`;
+});
+document.getElementById('totalOS').textContent='Rp '+(totalOS/1000000000).toFixed(3)+' M';
+document.getElementById('totalDeb').textContent=data.length;
+document.getElementById('col1').textContent=col1;
+document.getElementById('col2').textContent=col2;
+document.getElementById('tbody').innerHTML=html;
+document.getElementById('status').textContent=`✅ LIVE OK: ${data.length} baris | ${new Date().toLocaleString('id-ID')} | pub?output=csv`;
+}catch(e){
+document.getElementById('status').textContent='❌ Error: '+e+' - Cek publish Google Sheet';
+}
+}
+loadData();
+setInterval(loadData,30000);
+</script>
+</body>
+</html>
